@@ -1,5 +1,6 @@
-#library('test_fragment_parser');
-#import('../lib/fragment_parser.dart');
+library test_fragment_parser;
+
+import '../lib/fragment_parser.dart';
 
 expectParsesAs(expectedState, text) => () {
   Expect.equals(expectedState, new FragmentParser().append(text).state);

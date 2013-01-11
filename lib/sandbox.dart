@@ -2,19 +2,22 @@
 // Licensed under the Apache License, Version 2.0 (the "License")
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-#library("sandbox");
-#import("dart-ext:dart_sandbox");
-#import("dart:coreimpl");
-#import("dart:io");
-#import("dart:uri");
+library sandbox;
+import "dart-ext:dart_sandbox";
+import "dart:core";
+import "dart:io";
+import "dart:uri";
 
-class _TrackingMap extends HashMapImplementation {
+class _TrackingMap implements Map {
+  Map _map = new Map();
   var _newKeys;
   _TrackingMap() : _newKeys = new Set<String>();
+
   operator []= (key, value) {
-    if (!this.containsKey(key)) _newKeys.add(key);
-    return super[key] = value;
+    if (!_map.containsKey(key)) _newKeys.add(key);
+    return _map[key] = value;
   }
+
   _getNewKeys() {
     try {
       return _newKeys;
@@ -22,6 +25,18 @@ class _TrackingMap extends HashMapImplementation {
       _newKeys = new Set<String>();
     }
   }
+
+  Collection get values => _map.values;
+  Collection get keys => _map.keys;
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+  bool containsValue(dynamic value) => _map.containsValue(value);
+  bool containsKey(dynamic key) => _map.containsKey(key);
+  dynamic operator [] (key) => _map[key];
+  dynamic putIfAbsent(dynamic key, dynamic ifAbsent()) => _map.putIfAbsent(key, ifAbsent);
+  forEach(void f(dynamic k, dynamic v)) => _map.forEach(f);
+  dynamic remove(dynamic key) => _map.remove(key);
+  clear() => _map.clear();
 }
 
 class Sandbox {
@@ -31,7 +46,9 @@ class Sandbox {
   _seedEnv(map) => _Env._map = map;
   class _Env {
     static var _map;
-    noSuchMethod(name, args) {
+    noSuchMethod(mirror) {
+      var name = mirror.memberName;
+      var args = mirror.positionalArguments;
       if (name.startsWith('set:')) {
         return _map[name.substring(4)] = args[0];
       } else if (name.startsWith('get:') && _map.containsKey(name.substring(4))) {
@@ -49,7 +66,7 @@ class Sandbox {
   var _variables;
 
   Map<String, Object> get variables => _variables;
-  
+
   Sandbox() : _variables = new _TrackingMap() {
     var uniquer = _unique();
     _library = _createLibrary("console:$uniquer", "#library('console_$uniquer');\n$_BASE");
@@ -61,7 +78,7 @@ class Sandbox {
   }
 
   execute(code) {
-    var directiveMatch = const RegExp('^\\s*\\#(source|import)\\s*\\(["\'](.*)["\']\\)\\s*;\\s*\$').firstMatch(code);
+    var directiveMatch = new RegExp('^\\s*\\#(source|import)\\s*\\(["\'](.*)["\']\\)\\s*;\\s*\$').firstMatch(code);
     if (directiveMatch != null) return ((directiveMatch[1] == 'source') ? source : import)(directiveMatch[2]);
 
     var name = "_Eval${_unique()}";
@@ -77,13 +94,13 @@ class Sandbox {
 
   void import(relativeUri) {
     var uri = new Uri.fromComponents(scheme:"file", path:"${new Directory.current().path}/").resolve(relativeUri);
-    var readFile = () => new File(relativeUri).readAsTextSync();
+    var readFile = () => new File(relativeUri).readAsStringSync();
     return _import(_library, uri.toString(), readFile);
   }
 
   void source(relativeUri) {
     var uri = new Uri.fromComponents(scheme:"file", path:"${new Directory.current().path}/").resolve(relativeUri);
-    var code = new File(relativeUri).readAsTextSync();
+    var code = new File(relativeUri).readAsStringSync();
     return _declare(_library, uri.toString(), code);
   }
 

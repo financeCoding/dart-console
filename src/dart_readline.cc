@@ -24,6 +24,13 @@
 #define DART_FUNCTION(name) static void name(Dart_NativeArguments arguments)
 #define DART_RETURN(expr) {Dart_SetReturnValue(arguments, expr); Dart_ExitScope(); return;}
 
+// Create a new Dart String object from a C String.
+static Dart_Handle NewString(const char* str) {
+  assert(str != NULL);
+  return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
+                                strlen(str));
+}
+
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
 
 static Dart_Handle library;
@@ -39,8 +46,8 @@ DART_EXPORT Dart_Handle dart_readline_Init(Dart_Handle parent_library) {
 }
 
 static void Throw(const char* message) {
-  Dart_Handle messageHandle = Dart_NewString(message);
-  Dart_ThrowException(Dart_Invoke(library, Dart_NewString("_newException"), 1, &messageHandle));
+  Dart_Handle messageHandle = NewString(message);
+  Dart_ThrowException(Dart_Invoke(library, NewString("_newException"), 1, &messageHandle));
 }
 
 static Dart_Handle CheckDartError(Dart_Handle result) {
@@ -59,7 +66,7 @@ DART_FUNCTION(Readline) {
     DART_RETURN(Dart_Null());
   }
 
-  Dart_Handle result = Dart_NewString(cresult);
+  Dart_Handle result = NewString(cresult);
   free(cresult);
 
   DART_RETURN(result);
@@ -77,7 +84,7 @@ DART_FUNCTION(History_Add) {
 
 #define EXPORT(func, args) if (!strcmp(#func, cname) && argc == args) { return func; }
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
-  assert(Dart_IsString8(name));
+  assert(Dart_IsString(name));
   const char* cname;
   Dart_Handle check_error = Dart_StringToCString(name, &cname);
   if (Dart_IsError(check_error)) Dart_PropagateError(check_error);

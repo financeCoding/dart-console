@@ -1,6 +1,6 @@
-#import('dart:io');
-#import('test_sandbox.dart', prefix: 'sandbox');
-#import('test_fragment_parser.dart', prefix: 'fragment_parser');
+import 'dart:io';
+import 'test_sandbox.dart' as sandbox;
+import 'test_fragment_parser.dart' as fragment_parser;
 
 main() {
   var pass = true;

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#DART_SDK=$HOME/dart-sdk
+DART_SDK="/usr/local/dart/dart-sdk"
 
 if [ -z "$DART_SDK" ]; then
   DART_SDK="$HOME/dart-sdk"

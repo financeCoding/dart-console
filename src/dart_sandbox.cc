@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "dart_util.h"
 
+
 Dart_Handle get_library(Dart_Handle libraryNumberHandle) {
   int64_t libraryNumber;
   CheckDartError(Dart_IntegerToInt64(libraryNumberHandle, &libraryNumber));
@@ -51,7 +52,7 @@ DART_FUNCTION(Import) {
 DART_FUNCTION(InitEnvMap) {
   DART_ARGS_2(library, map);
   Dart_Handle libraryHandle = get_library(library);
-  CheckDartError(Dart_Invoke(libraryHandle, Dart_NewString("_seedEnv"), 1, &map));
+  CheckDartError(Dart_Invoke(libraryHandle, NewString("_seedEnv"), 1, &map));
   DART_RETURN(Dart_Null());
 }
 

@@ -1,5 +1,5 @@
-#library('test_sandbox');
-#import('../lib/sandbox.dart');
+ library test_sandbox;
+ import '../lib/sandbox.dart';
 
 test(callback(sandbox)) => (){ callback(new Sandbox()); };
 

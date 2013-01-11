@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0 (the "License")
 // You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-#library("readline");
+library readline;
 
-#import("dart-ext:dart_readline");
+import "dart-ext:dart_readline";
 
 class Input {
   History history;
@@ -32,7 +32,7 @@ class Input {
       try {
         if (callback(line)) break;
       } catch (e) {
-        print(e);        
+        print(e);
       }
     }
   }
