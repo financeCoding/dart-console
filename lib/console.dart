@@ -10,12 +10,15 @@ import "fragment_parser.dart";
 class Console {
   var stdin;
   var sandbox;
-  Console() :
-      stdin = new readline.Input(),
+  Console() {
+    print("entering Console();");
+      stdin = new readline.Input();
       sandbox = new Sandbox();
+      print("\nleaving Console();");
+  }
 
   run() {
-    print(sandbox.eval('1+1;'));
+    //print(sandbox.eval('1+1;'));
     stdin.loop(">> ", (line) {
       try {
         var input = new FragmentParser().append(line);
@@ -29,9 +32,20 @@ class Console {
             if (line == null) return true;
             input.append("$line\n");
             break;
-          case FragmentParser.DECLARATION: return sandbox.declare(input.toString());
-          case FragmentParser.EXPRESSION: return print(sandbox.eval(input.toString()));
-          case FragmentParser.STATEMENT: return sandbox.execute(input.toString());
+
+          case FragmentParser.DECLARATION:
+            print("DECLARATION");
+            var d = input.toString();
+            return sandbox.declare(d);
+
+          case FragmentParser.EXPRESSION:
+            print("EXPRESSION");
+            var e = input.toString();
+            return print(sandbox.eval(e));
+
+          case FragmentParser.STATEMENT:
+            print("STATEMENT");
+            return sandbox.execute(input.toString());
           }
         }
       } catch (e) {

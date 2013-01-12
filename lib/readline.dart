@@ -10,7 +10,7 @@ class Input {
   History history;
   String prompt;
 
-  Input([prompt]) {
+  Input({prompt}) {
     history = new History();
     this.prompt = (prompt == null) ? "> " : prompt.toString();
   }

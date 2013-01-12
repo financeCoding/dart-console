@@ -1,4 +1,4 @@
-#!/usr/local/dart/dart-sdk/bin/dart
+#!/usr/bin/env dart
 
 import "../lib/console.dart";
 main() => new Console().run();

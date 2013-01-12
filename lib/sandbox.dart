@@ -40,37 +40,18 @@ class _TrackingMap implements Map {
 }
 
 class Sandbox {
-  final _BASE = r"""
-  #import('dart:io', prefix: 'io');
-  get VARIABLES => _Env._map;
-  _seedEnv(map) => _Env._map = map;
-  class _Env {
-    static var _map;
-    noSuchMethod(mirror) {
-      var name = mirror.memberName;
-      var args = mirror.positionalArguments;
-      if (name.startsWith('set:')) {
-        return _map[name.substring(4)] = args[0];
-      } else if (name.startsWith('get:') && _map.containsKey(name.substring(4))) {
-        return _map[name.substring(4)];
-      }
-      return super.noSuchMethod(name, args);
-    }
-  }
-  print(o) { // otherwise this is missing for some reason
-    io.stdout.writeString("$o\n");
-  }
-  """;
-
   var _library;
-  var _variables;
+  var _variables = {};
 
   Map<String, Object> get variables => _variables;
 
-  Sandbox() : _variables = new _TrackingMap() {
+  Sandbox() {
+    print("constructor sandbox");
     var uniquer = _unique();
-    _library = _createLibrary("console:$uniquer", "#library('console_$uniquer');\n$_BASE");
-    _initEnvMap(_library, _variables);
+    _library = _createLibrary("console:$uniquer", "library console_$uniquer;\nimport 'dart:io' as io;\nget VARIABLES => _Env._map;\n_seedEnv(map) => _Env._map = map;\nprint(o) {\nio.stdout.writeString(o);\n}\nclass _Env {\n  static var _map;\n  noSuchMethod(mirror) {\n    var name = mirror.memberName;\n    var args = mirror.positionalArguments;\n    if (name.startsWith('set:')) {\n      return _map[name.substring(4)] = args[0];\n    } else if (name.startsWith('get:') && _map.containsKey(name.substring(4))) {\n      return _map[name.substring(4)];\n    }\n    return super.noSuchMethod(mirror);\n  }\n}");
+    print("_library = ");
+    print(_library);
+//    _initEnvMap(_library, _variables);
   }
 
   eval(expression) {
@@ -81,14 +62,19 @@ class Sandbox {
     var directiveMatch = new RegExp('^\\s*\\#(source|import)\\s*\\(["\'](.*)["\']\\)\\s*;\\s*\$').firstMatch(code);
     if (directiveMatch != null) return ((directiveMatch[1] == 'source') ? source : import)(directiveMatch[2]);
 
+    var uniquer = _unique();
+    _library = _createLibrary("console:$uniquer", "library console_$uniquer;\nimport 'dart:io' as io;\nget VARIABLES => _Env._map;\n_seedEnv(map) => _Env._map = map;\nprint(o) {\nio.stdout.writeString(o);\n}\nclass _Env {\n  static var _map;\n  noSuchMethod(mirror) {\n    var name = mirror.memberName;\n    var args = mirror.positionalArguments;\n    if (name.startsWith('set:')) {\n      return _map[name.substring(4)] = args[0];\n    } else if (name.startsWith('get:') && _map.containsKey(name.substring(4))) {\n      return _map[name.substring(4)];\n    }\n    return super.noSuchMethod(mirror);\n  }\n}");
+
     var name = "_Eval${_unique()}";
     var body = """
+      
       class $name extends _Env {
         _execute(){\n$code\n}
       }
       ${name}_execute() => new $name()._execute();
     """;
     declare(body);
+    print("_library = ${_library}");
     return _invoke(_library, "${name}_execute");
   }
 
@@ -106,13 +92,15 @@ class Sandbox {
 
   void declare(code) {
     // Create getters for any new variables set so they are accessible from declarations.
-    for (var v in _variables._getNewKeys()) {
+    for (var v in _variables.keys.toList()) {
       declare("get $v => VARIABLES['$v']; set $v(v) => VARIABLES['$v'] = v;");
     }
     _declare(_library, "console_declaration_${_unique()}", code);
+
+    print(code);
   }
 
-  static var _uniqueSeed = 1;
+  static var _uniqueSeed = 2;
   static _unique() => _uniqueSeed++;
 }
 

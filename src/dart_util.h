@@ -37,8 +37,7 @@ static Dart_Handle _library; // XXX this shouldn't be defined here
 // Create a new Dart String object from a C String.
 static Dart_Handle NewString(const char* str) {
   assert(str != NULL);
-  return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
-                                strlen(str));
+  return Dart_NewStringFromCString(str);
 }
 
 static void _Throw(Dart_Handle library, const char* message) {
